@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../components/ai_assistant.dart';
 import '../components/map_view.dart';
 import '../components/facial_recognition.dart';
-import '../components/daily_routine/daily_routine.dart';
+import '../components/daily_routine/daily_routine_component.dart';
 import '../components/memories/memories_grid.dart';
 import '../theme/app_theme.dart';
 import 'login_screen.dart';
@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
       case 2:
         return const FacialRecognition();
       case 3:
-        return const DailyRoutine();
+        return const DailyRoutineComponent();
       case 4:
         return const MemoriesGrid();
       default:
