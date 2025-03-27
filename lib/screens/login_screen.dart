@@ -437,28 +437,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
                           const SizedBox(height: 16),
 
-                          // Demo Login Access
-                          Container(
-                            padding: EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Demo Access:',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                Text('Email: demo@example.com'),
-                                Text('Password: password'),
-                              ],
-                            ),
-                          ),
-
-                          const SizedBox(height: 20),
-
                           // Register button
                           OutlinedButton(
                             style: OutlinedButton.styleFrom(
