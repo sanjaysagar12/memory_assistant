@@ -4,6 +4,7 @@ import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class AIAssistant extends StatefulWidget {
   const AIAssistant({Key? key}) : super(key: key);
@@ -22,6 +23,8 @@ class Message {
 
 class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStateMixin {
   final stt.SpeechToText _speech = stt.SpeechToText();
+  final FlutterTts _flutterTts = FlutterTts();
+
   bool _isListening = false;
   String _recognizedText = '';
   final TextEditingController _textController = TextEditingController();
@@ -71,6 +74,12 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
       _userId = prefs.getString('userId');
     });
     print("User ID: $_userId");
+  }
+  Future<void> _speak(String text) async {
+    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setPitch(1.0);  // Adjust pitch if needed
+    await _flutterTts.setSpeechRate(0.5);  // Adjust speed if needed
+    await _flutterTts.speak(text);
   }
 
   void _initSpeech() async {
@@ -162,6 +171,8 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
       ));
       _isLoading = true;
     });
+    await _speak(message);
+    await _flutterTts.stop();
 
     // Clear input field
     _textController.clear();
