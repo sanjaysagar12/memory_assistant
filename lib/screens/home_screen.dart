@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import '../components/ai_assistant.dart';
+import '../components/map_view.dart';
+import '../components/facial_recognition.dart';
+import '../components/daily_routine/daily_routine.dart';
+import '../components/memories/memories_grid.dart';
 
 class HomeScreen extends StatefulWidget {
   final String role;
@@ -20,217 +25,85 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
-  Widget _buildAIAssistant() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.smart_toy, size: 80, color: Colors.teal),
-          const SizedBox(height: 20),
-          const Text(
-            "AI Assistant",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.teal.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Column(
-              children: [
-                Text(
-                  "How can I help you today?",
-                  style: TextStyle(fontSize: 18),
-                ),
-                SizedBox(height: 20),
-                TextField(
-                  decoration: InputDecoration(
-                    hintText: "Ask me anything...",
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.send),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMapView() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.map, size: 80, color: Colors.teal),
-          const SizedBox(height: 20),
-          const Text(
-            "Map Location",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            height: 300,
-            width: double.infinity,
-            margin: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Center(
-              child: Text(
-                "Map View will appear here",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.my_location),
-            label: const Text("Find My Location"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFacialRecognition() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.face, size: 80, color: Colors.teal),
-          const SizedBox(height: 20),
-          const Text(
-            "Face Recognition",
-            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            height: 250,
-            width: 250,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade300,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.camera_alt, size: 50, color: Colors.grey),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.camera),
-            label: const Text("Identify Person"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
-              foregroundColor: Colors.white,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDailyRoutine() {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        const Text(
-          "Daily Routine",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 20),
-        _buildRoutineItem("8:00 AM", "Take morning medication", true),
-        _buildRoutineItem("9:00 AM", "Breakfast", true),
-        _buildRoutineItem("10:00 AM", "Memory exercises", false),
-        _buildRoutineItem("12:00 PM", "Lunch", false),
-        _buildRoutineItem("2:00 PM", "Doctor's appointment", false),
-        _buildRoutineItem("4:00 PM", "Take afternoon medication", false),
-        _buildRoutineItem("6:00 PM", "Dinner", false),
-        _buildRoutineItem("9:00 PM", "Take evening medication", false),
-      ],
-    );
-  }
-
-  Widget _buildRoutineItem(String time, String activity, bool completed) {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListTile(
-        leading: CircleAvatar(
-          backgroundColor: Colors.teal,
-          child: Text(
-            time.substring(0, 2),
-            style: const TextStyle(color: Colors.white),
-          ),
-        ),
-        title: Text(activity),
-        subtitle: Text(time),
-        trailing: Icon(
-          completed ? Icons.check_circle : Icons.circle_outlined,
-          color: completed ? Colors.green : Colors.grey,
-        ),
-        onTap: () {},
-      ),
-    );
-  }
-
-  Widget _buildMemories() {
-    return GridView.count(
-      crossAxisCount: 2,
-      padding: const EdgeInsets.all(16),
-      children: [
-        _buildMemoryCard("Family", Icons.family_restroom),
-        _buildMemoryCard("Friends", Icons.people),
-        _buildMemoryCard("Places", Icons.place),
-        _buildMemoryCard("Events", Icons.event),
-        _buildMemoryCard("Medications", Icons.medication),
-        _buildMemoryCard("Important Info", Icons.info),
-      ],
-    );
-  }
-
-  Widget _buildMemoryCard(String title, IconData icon) {
-    return Card(
-      elevation: 4,
-      child: InkWell(
-        onTap: () {},
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 50, color: Colors.teal),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _getSelectedView() {
     switch (_selectedIndex) {
       case 0:
-        return _buildAIAssistant();
+        return const AIAssistant();
       case 1:
-        return _buildMapView();
+        return const MapView();
       case 2:
-        return _buildFacialRecognition();
+        return const FacialRecognition();
       case 3:
-        return _buildDailyRoutine();
+        return const DailyRoutine();
       case 4:
-        return _buildMemories();
+        return const MemoriesGrid();
       default:
-        return _buildAIAssistant();
+        return const AIAssistant();
     }
+  }
+
+  void _showEmergencyDialog() {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            title: const Text("Emergency Call"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text("Do you need emergency assistance?"),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundImage: NetworkImage(
+                        "https://randomuser.me/api/portraits/women/43.jpg",
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Call Caretaker",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Text("${widget.username}'s primary contact"),
+                      ],
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("Cancel"),
+                style: TextButton.styleFrom(foregroundColor: Colors.grey[600]),
+              ),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Calling caretaker..."),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      margin: EdgeInsets.all(16),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.call),
+                label: const Text("Call Now"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+            ],
+          ),
+    );
   }
 
   @override
@@ -239,6 +112,7 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text("Memory Assistant"),
         backgroundColor: Colors.teal,
+        elevation: 2,
         actions: [
           Chip(
             label: Text(
@@ -248,57 +122,51 @@ class _HomeScreenState extends State<HomeScreen> {
             backgroundColor: Colors.teal.shade700,
           ),
           const SizedBox(width: 10),
+          CircleAvatar(
+            backgroundColor: Colors.teal.shade300,
+            child: Text(
+              widget.username.isNotEmpty
+                  ? widget.username[0].toUpperCase()
+                  : "U",
+              style: const TextStyle(color: Colors.white),
+            ),
+          ),
+          const SizedBox(width: 16),
         ],
       ),
       body: _getSelectedView(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder:
-                (context) => AlertDialog(
-                  title: const Text("Emergency Call"),
-                  content: const Text("Do you want to call your caretaker?"),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      child: const Text("Cancel"),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        // Here you would implement the actual call functionality
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Calling caretaker..."),
-                            backgroundColor: Colors.green,
-                          ),
-                        );
-                      },
-                      child: const Text("Call"),
-                    ),
-                  ],
-                ),
-          );
-        },
+        onPressed: _showEmergencyDialog,
         backgroundColor: Colors.red,
         child: const Icon(Icons.call),
+        tooltip: 'Emergency Call',
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.smart_toy),
             label: 'Assistant',
+            activeIcon: Icon(Icons.smart_toy, size: 28),
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
-          BottomNavigationBarItem(icon: Icon(Icons.face), label: 'Face ID'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Map',
+            activeIcon: Icon(Icons.map, size: 28),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.face),
+            label: 'Face ID',
+            activeIcon: Icon(Icons.face, size: 28),
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today),
             label: 'Routine',
+            activeIcon: Icon(Icons.calendar_today, size: 28),
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.photo_album),
             label: 'Memories',
+            activeIcon: Icon(Icons.photo_album, size: 28),
           ),
         ],
         currentIndex: _selectedIndex,
@@ -306,6 +174,9 @@ class _HomeScreenState extends State<HomeScreen> {
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
         type: BottomNavigationBarType.fixed,
+        selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+        showSelectedLabels: true,
+        showUnselectedLabels: true,
       ),
     );
   }
