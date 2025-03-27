@@ -24,7 +24,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
   final stt.SpeechToText _speech = stt.SpeechToText();
   bool _isListening = false;
   String _recognizedText = '';
-  TextEditingController _textController = TextEditingController();
+  final TextEditingController _textController = TextEditingController();
   bool _speechAvailable = false;
   bool _isLoading = false;
   String? _userId;
@@ -47,6 +47,13 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     )..repeat(reverse: true);
+    
+    // Listen for changes to the text field
+    _textController.addListener(() {
+      setState(() {
+        // This forces the send button to update its state
+      });
+    });
   }
   
   @override
@@ -63,40 +70,71 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     setState(() {
       _userId = prefs.getString('userId');
     });
+    print("User ID: $_userId");
   }
 
   void _initSpeech() async {
-    _speechAvailable = await _speech.initialize(
-      onError: (error) => print('Speech recognition error: $error'),
-      onStatus: (status) {
-        print('Speech recognition status: $status');
-        if (status == 'notListening') {
+    try {
+      print('Initializing speech recognition...');
+      _speechAvailable = await _speech.initialize(
+        onError: (error) {
+          print('Speech recognition error: $error');
           setState(() => _isListening = false);
-        }
-      },
-    );
-    setState(() {});
+        },
+        onStatus: (status) {
+          print('Speech recognition status: $status');
+          if (status == 'notListening') {
+            setState(() => _isListening = false);
+          }
+        },
+      );
+      print('Speech recognition available: $_speechAvailable');
+      setState(() {});
+    } catch (e) {
+      print('Failed to initialize speech recognition: $e');
+      _speechAvailable = false;
+      setState(() {});
+    }
   }
 
   void _startListening() async {
+    if (!_speechAvailable) {
+      print('Speech recognition not available, trying to initialize again');
+      _initSpeech();
+    }
+    
     if (_speechAvailable) {
+      print('Starting speech recognition');
       setState(() => _isListening = true);
-      await _speech.listen(
-        onResult: (result) {
-          setState(() {
-            _recognizedText = result.recognizedWords;
-            _textController.text = _recognizedText;
-          });
-        },
-      );
+      try {
+        await _speech.listen(
+          onResult: (result) {
+            print('Recognized text: ${result.recognizedWords}');
+            setState(() {
+              _recognizedText = result.recognizedWords;
+              _textController.text = _recognizedText;
+            });
+          },
+        );
+      } catch (e) {
+        print('Error starting speech recognition: $e');
+        setState(() => _isListening = false);
+      }
     } else {
+      print('Speech recognition still not available');
       setState(() => _isListening = false);
-      print('Speech recognition not available');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Speech recognition is not available on this device.'),
+          duration: Duration(seconds: 3),
+        ),
+      );
     }
   }
 
   void _stopListening() async {
     if (_isListening) {
+      print('Stopping speech recognition');
       await _speech.stop();
       setState(() => _isListening = false);
     }
@@ -104,9 +142,13 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
 
   // Send message to AI API
   Future<void> _sendMessage() async {
-    if (_textController.text.isEmpty) return;
+    final message = _textController.text.trim();
+    if (message.isEmpty) {
+      print('Message is empty, not sending');
+      return;
+    }
     
-    final message = _textController.text;
+    print('Sending message: $message');
     
     // Add user message to chat
     final now = DateTime.now().toUtc();
@@ -148,7 +190,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     try {
       // Send request to API
       final response = await http.post(
-        Uri.parse('http://localhost:80/ai/ask'),
+        Uri.parse('https://guideai.selfmade.one/ai/ask/ai/ask'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'user_id': _userId,
@@ -156,12 +198,14 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
         }),
       );
       
+      print('API response status: ${response.statusCode}');
+      
       // Process response
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
         setState(() {
           _messages.add(Message(
-            text: responseData['response'],
+            text: responseData['response'] ?? "No response received",
             isUserMessage: false,
             timestamp: responseData['timestamp'] ?? DateTime.now().toUtc().toString(),
           ));
@@ -170,7 +214,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
       } else {
         setState(() {
           _messages.add(Message(
-            text: "Sorry, I couldn't process your request. Please try again later.",
+            text: "Sorry, I couldn't process your request. Please try again later. (Status: ${response.statusCode})",
             isUserMessage: false,
             timestamp: timestamp,
           ));
@@ -178,6 +222,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
         });
       }
     } catch (e) {
+      print('Error sending message: $e');
       setState(() {
         _messages.add(Message(
           text: "Network error: Unable to reach the AI service. Please check your connection.",
@@ -356,9 +401,6 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
                       ),
                       // Microphone button
                       IconButton(
-                        onPressed: _isLoading
-                            ? null
-                            : (_isListening ? _stopListening : _startListening),
                         icon: Icon(
                           _isListening ? Icons.stop_circle : Icons.mic,
                           color: _isLoading
@@ -366,6 +408,15 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
                               : (_isListening ? Colors.red : AppTheme.primaryColor),
                           size: 28,
                         ),
+                        onPressed: _isLoading 
+                            ? null 
+                            : () {
+                                if (_isListening) {
+                                  _stopListening();
+                                } else {
+                                  _startListening();
+                                }
+                              },
                       ),
                       // Send button
                       IconButton(
@@ -380,11 +431,11 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
                               )
                             : Icon(
                                 Icons.send,
-                                color: _textController.text.isEmpty
+                                color: _textController.text.trim().isEmpty
                                     ? Colors.grey
                                     : AppTheme.primaryColor,
                               ),
-                        onPressed: _isLoading || _textController.text.isEmpty
+                        onPressed: (_isLoading || _textController.text.trim().isEmpty)
                             ? null
                             : _sendMessage,
                       ),
