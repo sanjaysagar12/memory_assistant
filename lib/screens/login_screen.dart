@@ -222,7 +222,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "Memory Assistant",
+                  "Congnisync",
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -471,7 +471,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 const SizedBox(height: 24),
                 Text(
-                  'Memory Assistant © ${DateTime.now().year}',
+                  'Congnisync © ${DateTime.now().year}',
                   style: TextStyle(color: AppTheme.secondaryTextColor),
                 ),
               ],

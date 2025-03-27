@@ -205,7 +205,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      "Memory Assistant",
+                      "Congnisync",
                       style: TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
@@ -511,7 +511,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               // Footer
               Center(
                 child: Text(
-                  'Memory Assistant © ${DateTime.now().year}',
+                  'Congnisync © ${DateTime.now().year}',
                   style: TextStyle(color: AppTheme.secondaryTextColor),
                 ),
               ),

@@ -75,7 +75,7 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 24),
             Text(
-              'Memory Assistant',
+              'Congnisync',
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,

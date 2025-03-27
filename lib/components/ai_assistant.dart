@@ -475,7 +475,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
                       ),
                       SizedBox(width: 12),
                       Text(
-                        "Memory Assistant",
+                        "Congnisync",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: AppTheme.primaryTextColor,

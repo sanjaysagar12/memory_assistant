@@ -275,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text("Memory Assistant"),
+              const Text("Congnisync"),
               Text(
                 todayDate,
                 style: TextStyle(
