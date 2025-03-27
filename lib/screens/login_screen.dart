@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'caretaker_screen.dart';
+import 'register_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -36,14 +37,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('accessToken');
-    
+
     if (token != null) {
       try {
         final response = await http.get(
           Uri.parse('https://api.selfmade.plus/auth/profile'),
           headers: {
             'Authorization': 'Bearer $token',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
           },
         );
 
@@ -56,19 +57,16 @@ class _LoginScreenState extends State<LoginScreen> {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeScreen(
-                  role: 'Patient',
-                  username: userEmail,
-                ),
+                builder:
+                    (context) =>
+                        HomeScreen(role: 'Patient', username: userEmail),
               ),
             );
           } else if (userRole == 'CARETAKER') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => CaretakerScreen(
-                  username: userEmail,
-                ),
+                builder: (context) => CaretakerScreen(username: userEmail),
               ),
             );
           }
@@ -77,13 +75,14 @@ class _LoginScreenState extends State<LoginScreen> {
           prefs.remove('accessToken');
           prefs.remove('userRole');
           prefs.remove('userEmail');
+          prefs.remove('userId');
         }
       } catch (e) {
         // Error occurred, but we'll just show the login screen
         print('Error verifying token: $e');
       }
     }
-    
+
     if (mounted) {
       setState(() {
         _isLoading = false;
@@ -119,39 +118,36 @@ class _LoginScreenState extends State<LoginScreen> {
         if (response.statusCode == 200) {
           // Successful login
           final responseData = jsonDecode(response.body);
-          
+
           // Extract data from response
           final accessToken = responseData['accessToken'];
           final userData = responseData['user'];
           final userId = userData['id'];
           final userEmail = userData['email'];
           final userRole = userData['role'];
-          
+
           // Save to SharedPreferences
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('accessToken', accessToken);
           await prefs.setString('userId', userId);
           await prefs.setString('userEmail', userEmail);
           await prefs.setString('userRole', userRole);
-          
+
           // Navigate based on role from API response
           if (userRole == 'PATIENT') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => HomeScreen(
-                  role: 'Patient',
-                  username: userEmail,
-                ),
+                builder:
+                    (context) =>
+                        HomeScreen(role: 'Patient', username: userEmail),
               ),
             );
           } else if (userRole == 'CARETAKER') {
             Navigator.pushReplacement(
               context,
               MaterialPageRoute(
-                builder: (context) => CaretakerScreen(
-                  username: userEmail,
-                ),
+                builder: (context) => CaretakerScreen(username: userEmail),
               ),
             );
           } else {
@@ -167,9 +163,11 @@ class _LoginScreenState extends State<LoginScreen> {
           } catch (e) {
             // Handle non-JSON responses
           }
-          
+
           setState(() {
-            _errorMessage = responseData['message'] ?? 'Login failed. Please check your credentials.';
+            _errorMessage =
+                responseData['message'] ??
+                'Login failed. Please check your credentials.';
           });
         }
       } catch (e) {
@@ -197,7 +195,8 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               CircularProgressIndicator(color: AppTheme.primaryColor),
               SizedBox(height: 16),
-              Text("Checking credentials...",
+              Text(
+                "Checking credentials...",
                 style: TextStyle(color: AppTheme.primaryColor),
               ),
             ],
@@ -417,22 +416,23 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                             ),
                             onPressed: _isLoading ? null : _login,
-                            child: _isLoading 
-                              ? SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  'LOGIN',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                            child:
+                                _isLoading
+                                    ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                        strokeWidth: 2,
+                                      ),
+                                    )
+                                    : Text(
+                                      'LOGIN',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                           ),
 
                           const SizedBox(height: 16),
@@ -454,6 +454,35 @@ class _LoginScreenState extends State<LoginScreen> {
                                 Text('Email: demo@example.com'),
                                 Text('Password: password'),
                               ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Register button
+                          OutlinedButton(
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: AppTheme.primaryColor),
+                              foregroundColor: AppTheme.primaryColor,
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                            ),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => RegisterScreen(),
+                                ),
+                              );
+                            },
+                            child: Text(
+                              'CREATE NEW ACCOUNT',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ],
