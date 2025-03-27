@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../theme/app_theme.dart';
 
 class DailyRoutineComponent extends StatefulWidget {
   const DailyRoutineComponent({Key? key}) : super(key: key);
@@ -67,8 +68,9 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
   ];
 
   // Current time exactly as provided
-  String _currentTime = "2025-03-27 18:36:06";
+  String _currentTime = "2025-03-27 18:59:34";
   late DateTime _currentDateTime;
+  String _username = "sanjaysagar12";
 
   @override
   void initState() {
@@ -100,7 +102,7 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
         Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.teal.withOpacity(0.1),
+            color: AppTheme.primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.only(
               bottomLeft: Radius.circular(15),
               bottomRight: Radius.circular(15),
@@ -116,7 +118,7 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.bold,
-                      color: Colors.teal,
+                      color: AppTheme.primaryColor,
                     ),
                   ),
                   Chip(
@@ -124,7 +126,7 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                       _currentDateTime.toLocal().toString().split(' ')[0],
                       style: TextStyle(color: Colors.white),
                     ),
-                    backgroundColor: Colors.teal,
+                    backgroundColor: AppTheme.primaryColor,
                     padding: EdgeInsets.symmetric(horizontal: 8),
                   ),
                 ],
@@ -132,24 +134,30 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
               SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.access_time, color: Colors.teal),
+                  Icon(Icons.access_time, color: AppTheme.primaryColor),
                   SizedBox(width: 8),
                   Text(
                     'Current Time: ${_currentDateTime.hour.toString().padLeft(2, '0')}:${_currentDateTime.minute.toString().padLeft(2, '0')}',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   Spacer(),
-                  Icon(Icons.person, color: Colors.teal, size: 16),
+                  Icon(Icons.person, color: AppTheme.primaryColor, size: 16),
                   SizedBox(width: 4),
+                  Text(
+                    _username,
+                    style: TextStyle(
+                      color: AppTheme.secondaryColor,
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
                 ],
               ),
               SizedBox(height: 8),
               LinearProgressIndicator(
-                value:
-                    (_currentDateTime.hour * 60 + _currentDateTime.minute) /
-                    (24 * 60),
+                value: (_currentDateTime.hour * 60 + _currentDateTime.minute) / (24 * 60),
                 backgroundColor: Colors.grey[300],
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.teal),
+                valueColor: AlwaysStoppedAnimation<Color>(AppTheme.accentColor),
               ),
               SizedBox(height: 4),
               Row(
@@ -157,15 +165,15 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                 children: [
                   Text(
                     'Morning',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: AppTheme.secondaryTextColor),
                   ),
                   Text(
                     'Afternoon',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: AppTheme.secondaryTextColor),
                   ),
                   Text(
                     'Evening',
-                    style: TextStyle(fontSize: 12, color: Colors.grey),
+                    style: TextStyle(fontSize: 12, color: AppTheme.secondaryTextColor),
                   ),
                 ],
               ),
@@ -180,10 +188,14 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
             children: [
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: AppTheme.primaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppTheme.primaryColor.withOpacity(0.2),
+                      width: 1,
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -192,9 +204,13 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: AppTheme.primaryTextColor,
                         ),
                       ),
-                      Text('Completed', style: TextStyle(fontSize: 12)),
+                      Text(
+                        'Completed',
+                        style: TextStyle(fontSize: 12, color: AppTheme.secondaryTextColor),
+                      ),
                     ],
                   ),
                 ),
@@ -202,10 +218,14 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
               SizedBox(width: 16),
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.orange.withOpacity(0.1),
+                    color: Colors.amber.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: Colors.amber.withOpacity(0.3),
+                      width: 1,
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -214,9 +234,13 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: Colors.amber[800],
                         ),
                       ),
-                      Text('Overdue', style: TextStyle(fontSize: 12)),
+                      Text(
+                        'Overdue',
+                        style: TextStyle(fontSize: 12, color: AppTheme.secondaryTextColor),
+                      ),
                     ],
                   ),
                 ),
@@ -224,10 +248,14 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
               SizedBox(width: 16),
               Expanded(
                 child: Container(
-                  padding: EdgeInsets.symmetric(vertical: 8),
+                  padding: EdgeInsets.symmetric(vertical: 12),
                   decoration: BoxDecoration(
-                    color: Colors.red.withOpacity(0.1),
+                    color: AppTheme.errorColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: AppTheme.errorColor.withOpacity(0.2),
+                      width: 1,
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -236,9 +264,13 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
+                          color: AppTheme.errorColor,
                         ),
                       ),
-                      Text('Important', style: TextStyle(fontSize: 12)),
+                      Text(
+                        'Important',
+                        style: TextStyle(fontSize: 12, color: AppTheme.secondaryTextColor),
+                      ),
                     ],
                   ),
                 ),
@@ -265,16 +297,12 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                   side: BorderSide(
-                    color:
-                        isCurrent
-                            ? Colors.teal
-                            : (isPastDue && !routine['completed'])
-                            ? Colors.orange
+                    color: isCurrent
+                        ? AppTheme.accentColor
+                        : (isPastDue && !routine['completed'])
+                            ? Colors.amber[700]!
                             : Colors.transparent,
-                    width:
-                        isCurrent || (isPastDue && !routine['completed'])
-                            ? 2
-                            : 0,
+                    width: isCurrent || (isPastDue && !routine['completed']) ? 2 : 0,
                   ),
                 ),
                 child: Padding(
@@ -285,10 +313,9 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                       height: 50,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            routine['important']
-                                ? Colors.red.withOpacity(0.1)
-                                : Colors.teal.withOpacity(0.1),
+                        color: routine['important']
+                            ? AppTheme.errorColor.withOpacity(0.1)
+                            : AppTheme.primaryColor.withOpacity(0.1),
                       ),
                       child: Center(
                         child: Text(
@@ -296,8 +323,9 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color:
-                                routine['important'] ? Colors.red : Colors.teal,
+                            color: routine['important']
+                                ? AppTheme.errorColor
+                                : AppTheme.primaryColor,
                           ),
                         ),
                       ),
@@ -306,16 +334,11 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                       routine['activity'],
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight:
-                            routine['important']
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                        decoration:
-                            routine['completed']
-                                ? TextDecoration.lineThrough
-                                : null,
-                        color:
-                            routine['completed'] ? Colors.grey : Colors.black,
+                        fontWeight: routine['important'] ? FontWeight.bold : FontWeight.normal,
+                        decoration: routine['completed'] ? TextDecoration.lineThrough : null,
+                        color: routine['completed']
+                            ? AppTheme.secondaryTextColor
+                            : AppTheme.primaryTextColor,
                       ),
                     ),
                     subtitle: Row(
@@ -326,13 +349,13 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                               Icon(
                                 Icons.priority_high,
                                 size: 14,
-                                color: Colors.red,
+                                color: AppTheme.errorColor,
                               ),
                               SizedBox(width: 4),
                               Text(
                                 'Important',
                                 style: TextStyle(
-                                  color: Colors.red,
+                                  color: AppTheme.errorColor,
                                   fontSize: 12,
                                 ),
                               ),
@@ -345,13 +368,13 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                               Icon(
                                 Icons.watch_later,
                                 size: 14,
-                                color: Colors.orange,
+                                color: Colors.amber[700],
                               ),
                               SizedBox(width: 4),
                               Text(
                                 'Overdue',
                                 style: TextStyle(
-                                  color: Colors.orange,
+                                  color: Colors.amber[700],
                                   fontSize: 12,
                                 ),
                               ),
@@ -362,18 +385,16 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                     trailing: Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            routine['completed']
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.grey.withOpacity(0.1),
+                        color: routine['completed']
+                            ? Colors.green.withOpacity(0.1)
+                            : Colors.grey.withOpacity(0.1),
                       ),
                       child: IconButton(
                         icon: Icon(
                           routine['completed']
                               ? Icons.check_circle
                               : Icons.circle_outlined,
-                          color:
-                              routine['completed'] ? Colors.green : Colors.grey,
+                          color: routine['completed'] ? Colors.green : Colors.grey,
                         ),
                         onPressed: () => _toggleRoutineCompletion(index),
                       ),
@@ -397,18 +418,20 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Text('Add routine feature coming soon'),
+                        backgroundColor: AppTheme.primaryColor,
                       ),
                     );
                   },
                   icon: Icon(Icons.add),
                   label: Text('Add Routine'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.teal,
+                    backgroundColor: AppTheme.primaryColor,
                     foregroundColor: Colors.white,
-                    padding: EdgeInsets.symmetric(vertical: 12),
+                    padding: EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    elevation: 2,
                   ),
                 ),
               ),
