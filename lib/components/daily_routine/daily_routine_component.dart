@@ -70,7 +70,6 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
   // Current time exactly as provided
   String _currentTime = "2025-03-27 18:59:34";
   late DateTime _currentDateTime;
-  String _username = "sanjaysagar12";
 
   @override
   void initState() {
@@ -143,14 +142,6 @@ class _DailyRoutineComponentState extends State<DailyRoutineComponent> {
                   Spacer(),
                   Icon(Icons.person, color: AppTheme.primaryColor, size: 16),
                   SizedBox(width: 4),
-                  Text(
-                    _username,
-                    style: TextStyle(
-                      color: AppTheme.secondaryColor,
-                      fontWeight: FontWeight.w500,
-                      fontSize: 13,
-                    ),
-                  ),
                 ],
               ),
               SizedBox(height: 8),
