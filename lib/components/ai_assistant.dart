@@ -31,6 +31,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
   bool _speechAvailable = false;
   bool _isLoading = false;
   String? _userId;
+  bool _ttsEnabled = true; // Added TTS toggle control
   
   // Message history
   List<Message> _messages = [];
@@ -43,6 +44,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
   void initState() {
     super.initState();
     _initSpeech();
+    _initTts();
     _getUserId();
     
     // Setup animation controller for voice waves
@@ -64,7 +66,20 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     _animationController.dispose();
     _textController.dispose();
     _scrollController.dispose();
+    _flutterTts.stop();
     super.dispose();
+  }
+
+  // Initialize Text-to-Speech
+  Future<void> _initTts() async {
+    await _flutterTts.setLanguage("en-US");
+    await _flutterTts.setPitch(1.0);
+    await _flutterTts.setSpeechRate(0.5);
+    await _flutterTts.setVolume(1.0);
+    
+    _flutterTts.setCompletionHandler(() {
+      print("TTS Completed");
+    });
   }
 
   // Get user ID from SharedPreferences
@@ -75,11 +90,20 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     });
     print("User ID: $_userId");
   }
+  
+  // Improved speak method
   Future<void> _speak(String text) async {
-    await _flutterTts.setLanguage("en-US");
-    await _flutterTts.setPitch(1.0);  // Adjust pitch if needed
-    await _flutterTts.setSpeechRate(0.5);  // Adjust speed if needed
-    await _flutterTts.speak(text);
+    if (!_ttsEnabled) return;
+    
+    try {
+      await _flutterTts.speak(text);
+    } catch (e) {
+      print('TTS Error: $e');
+    }
+  }
+
+  void _stopSpeaking() async {
+    await _flutterTts.stop();
   }
 
   void _initSpeech() async {
@@ -113,6 +137,9 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     }
     
     if (_speechAvailable) {
+      // Stop any ongoing TTS when starting to listen
+      _stopSpeaking();
+      
       print('Starting speech recognition');
       setState(() => _isListening = true);
       try {
@@ -149,7 +176,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     }
   }
 
-  // Send message to AI API
+  // Updated send message method with proper TTS
   Future<void> _sendMessage() async {
     final message = _textController.text.trim();
     if (message.isEmpty) {
@@ -158,6 +185,9 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     }
     
     print('Sending message: $message');
+    
+    // Stop any ongoing speech before processing new message
+    _stopSpeaking();
     
     // Add user message to chat
     final now = DateTime.now().toUtc();
@@ -171,8 +201,6 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
       ));
       _isLoading = true;
     });
-    await _speak(message);
-    await _flutterTts.stop();
 
     // Clear input field
     _textController.clear();
@@ -185,15 +213,17 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     if (_userId == null) {
       await _getUserId();
       if (_userId == null) {
+        final errorMessage = "Error: User not authenticated. Please log in again.";
         setState(() {
           _messages.add(Message(
-            text: "Error: User not authenticated. Please log in again.",
+            text: errorMessage,
             isUserMessage: false,
             timestamp: timestamp,
           ));
           _isLoading = false;
         });
         _scrollToBottom();
+        await _speak(errorMessage);
         return;
       }
     }
@@ -214,34 +244,48 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
       // Process response
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
+        final aiResponse = responseData['response'] ?? "No response received";
+        
         setState(() {
           _messages.add(Message(
-            text: responseData['response'] ?? "No response received",
+            text: aiResponse,
             isUserMessage: false,
             timestamp: responseData['timestamp'] ?? DateTime.now().toUtc().toString(),
           ));
           _isLoading = false;
         });
+        
+        // Speak the AI's response
+        await _speak(aiResponse);
+        
       } else {
+        final errorMessage = "Sorry, I couldn't process your request. Please try again later. (Status: ${response.statusCode})";
         setState(() {
           _messages.add(Message(
-            text: "Sorry, I couldn't process your request. Please try again later. (Status: ${response.statusCode})",
+            text: errorMessage,
             isUserMessage: false,
             timestamp: timestamp,
           ));
           _isLoading = false;
         });
+        
+        // Speak error message
+        await _speak(errorMessage);
       }
     } catch (e) {
       print('Error sending message: $e');
+      final networkError = "Network error: Unable to reach the AI service. Please check your connection.";
       setState(() {
         _messages.add(Message(
-          text: "Network error: Unable to reach the AI service. Please check your connection.",
+          text: networkError,
           isUserMessage: false,
           timestamp: timestamp,
         ));
         _isLoading = false;
       });
+      
+      // Speak network error message
+      await _speak(networkError);
     }
     
     _scrollToBottom();
@@ -307,13 +351,41 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
                   ),
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  "AI Assistant",
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
-                  ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "AI Assistant",
+                      style: TextStyle(
+                        fontSize: 22,
+                        fontWeight: FontWeight.bold,
+                        color: AppTheme.primaryColor,
+                      ),
+                    ),
+                    // Added TTS toggle switch
+                    SizedBox(width: 16),
+                    Row(
+                      children: [
+                        Icon(
+                          _ttsEnabled ? Icons.volume_up : Icons.volume_off,
+                          size: 20,
+                          color: AppTheme.secondaryTextColor,
+                        ),
+                        Switch(
+                          value: _ttsEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              _ttsEnabled = value;
+                              if (!_ttsEnabled) {
+                                _stopSpeaking();
+                              }
+                            });
+                          },
+                          activeColor: AppTheme.primaryColor,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -591,12 +663,31 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
                   ),
                 ),
               )
-            : Text(
-                message,
-                style: TextStyle(
-                  color: isUser ? Colors.white : Colors.black87,
-                  fontSize: 15,
-                ),
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      message,
+                      style: TextStyle(
+                        color: isUser ? Colors.white : Colors.black87,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                  // Added speak again button for AI responses
+                  if (!isUser && message.isNotEmpty && _ttsEnabled)
+                    IconButton(
+                      icon: Icon(
+                        Icons.volume_up,
+                        size: 18,
+                        color: AppTheme.primaryColor,
+                      ),
+                      onPressed: () => _speak(message),
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints.tightFor(width: 24, height: 24),
+                    ),
+                ],
               ),
       ),
     );
