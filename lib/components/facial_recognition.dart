@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import '../../theme/app_theme.dart';
 
 class FacialRecognition extends StatefulWidget {
   const FacialRecognition({Key? key}) : super(key: key);
@@ -14,6 +15,10 @@ class _FacialRecognitionState extends State<FacialRecognition> {
   String _imagePath = '';
   String? _identifiedPerson;
   bool _isIdentifying = false;
+
+  // User current information
+  String _currentTime = "2025-03-27 18:54:58";
+  String _username = "sanjaysagar12";
 
   // Sample photos and names for demonstration
   final List<Map<String, dynamic>> _samplePeople = [
@@ -94,8 +99,35 @@ class _FacialRecognitionState extends State<FacialRecognition> {
     return Scaffold(
       appBar: AppBar(
         title: Text("Face Recognition"),
-        backgroundColor: Colors.teal,
+        backgroundColor: AppTheme.primaryColor,
+        elevation: 0,
+        actions: [
+          Container(
+            margin: const EdgeInsets.only(right: 16.0),
+            child: Row(
+              children: [
+                Text(
+                  _username,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(width: 8),
+                CircleAvatar(
+                  backgroundColor: AppTheme.secondaryColor,
+                  radius: 16,
+                  child: Text(
+                    _username.substring(0, 1).toUpperCase(),
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
+      backgroundColor: AppTheme.backgroundColor,
       body: SingleChildScrollView(
         child: Center(
           child: Padding(
@@ -104,22 +136,62 @@ class _FacialRecognitionState extends State<FacialRecognition> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Facial Recognition Icon/Title
-                Icon(
-                  Icons.face_retouching_natural,
-                  size: 60,
-                  color: Colors.teal,
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.face_retouching_natural,
+                    size: 60,
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
                 SizedBox(height: 16),
                 Text(
                   "Who is this person?",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: AppTheme.primaryTextColor,
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(
                   "Take a photo to identify someone from your contacts",
                   textAlign: TextAlign.center,
-                  style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor,
+                    fontSize: 16,
+                  ),
                 ),
+                SizedBox(height: 24),
+
+                // Current time display
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 16,
+                        color: AppTheme.primaryColor,
+                      ),
+                      SizedBox(width: 6),
+                      Text(
+                        _currentTime,
+                        style: TextStyle(color: AppTheme.primaryColor),
+                      ),
+                    ],
+                  ),
+                ),
+
                 SizedBox(height: 24),
 
                 // Camera Preview / Captured Image Container
@@ -127,15 +199,15 @@ class _FacialRecognitionState extends State<FacialRecognition> {
                   height: 350,
                   width: 280,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
+                    color: AppTheme.cardColor,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: Colors.teal.withOpacity(0.5),
+                      color: AppTheme.primaryColor.withOpacity(0.3),
                       width: 2,
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
+                        color: AppTheme.primaryColor.withOpacity(0.1),
                         spreadRadius: 1,
                         blurRadius: 10,
                         offset: Offset(0, 5),
@@ -152,11 +224,15 @@ class _FacialRecognitionState extends State<FacialRecognition> {
                 // Identification Result
                 if (_identifiedPerson != null)
                   Container(
+                    width: double.infinity,
+                    margin: EdgeInsets.symmetric(horizontal: 16),
                     padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.teal.withOpacity(0.1),
+                      color: AppTheme.primaryColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.teal),
+                      border: Border.all(
+                        color: AppTheme.primaryColor.withOpacity(0.5),
+                      ),
                     ),
                     child: Column(
                       children: [
@@ -165,20 +241,22 @@ class _FacialRecognitionState extends State<FacialRecognition> {
                             Icon(Icons.check_circle, color: Colors.green),
                             SizedBox(width: 8),
                             Text(
-                              "Identified:",
+                              "Successfully Identified:",
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
+                                color: AppTheme.primaryTextColor,
                               ),
                             ),
                           ],
                         ),
-                        SizedBox(height: 8),
+                        SizedBox(height: 12),
                         Text(
                           _identifiedPerson!,
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
+                            color: AppTheme.primaryColor,
                           ),
                           textAlign: TextAlign.center,
                         ),
@@ -190,6 +268,24 @@ class _FacialRecognitionState extends State<FacialRecognition> {
 
                 // Action Buttons
                 _buildActionButtons(),
+
+                SizedBox(height: 20),
+
+                // Footer
+                Text(
+                  "Memory Assistant App",
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor,
+                    fontSize: 12,
+                  ),
+                ),
+                Text(
+                  "© 2025 ${_username}",
+                  style: TextStyle(
+                    color: AppTheme.secondaryTextColor,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),
@@ -210,7 +306,7 @@ class _FacialRecognitionState extends State<FacialRecognition> {
             children: [
               Icon(Icons.camera, size: 40, color: Colors.white70),
               SizedBox(height: 20),
-              CircularProgressIndicator(color: Colors.white),
+              CircularProgressIndicator(color: AppTheme.accentColor),
               SizedBox(height: 20),
               Text("Taking photo...", style: TextStyle(color: Colors.white70)),
             ],
@@ -227,7 +323,9 @@ class _FacialRecognitionState extends State<FacialRecognition> {
             fit: BoxFit.cover,
             loadingBuilder: (context, child, loadingProgress) {
               if (loadingProgress == null) return child;
-              return Center(child: CircularProgressIndicator());
+              return Center(
+                child: CircularProgressIndicator(color: AppTheme.primaryColor),
+              );
             },
             errorBuilder: (context, error, stackTrace) {
               return Center(
@@ -243,7 +341,7 @@ class _FacialRecognitionState extends State<FacialRecognition> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    CircularProgressIndicator(color: Colors.teal),
+                    CircularProgressIndicator(color: AppTheme.accentColor),
                     SizedBox(height: 16),
                     Text(
                       "Identifying person...",
@@ -294,8 +392,8 @@ class _FacialRecognitionState extends State<FacialRecognition> {
             icon: Icon(Icons.refresh),
             label: Text("Retake Photo"),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.teal,
-              side: BorderSide(color: Colors.teal),
+              foregroundColor: AppTheme.primaryColor,
+              side: BorderSide(color: AppTheme.primaryColor),
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -310,13 +408,16 @@ class _FacialRecognitionState extends State<FacialRecognition> {
                     ? null
                     : () {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text("Person identification saved")),
+                        SnackBar(
+                          content: Text("Person identification saved"),
+                          backgroundColor: AppTheme.primaryColor,
+                        ),
                       );
                     },
             icon: Icon(Icons.check),
             label: Text("Confirm"),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.teal,
+              backgroundColor: AppTheme.primaryColor,
               foregroundColor: Colors.white,
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               shape: RoundedRectangleBorder(
@@ -328,18 +429,23 @@ class _FacialRecognitionState extends State<FacialRecognition> {
       );
     } else {
       // Take photo button
-      return ElevatedButton.icon(
-        onPressed: _isCapturing ? null : _takePhoto,
-        icon: Icon(Icons.camera_alt),
-        label: Text("Take Photo"),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.teal,
-          foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
+      return Container(
+        width: double.infinity,
+        padding: EdgeInsets.symmetric(horizontal: 32),
+        child: ElevatedButton.icon(
+          onPressed: _isCapturing ? null : _takePhoto,
+          icon: Icon(Icons.camera_alt),
+          label: Text("Take Photo"),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppTheme.primaryColor,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(vertical: 16),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(30),
+            ),
+            elevation: 3,
+            textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
           ),
-          minimumSize: Size(200, 50),
         ),
       );
     }
@@ -352,7 +458,7 @@ class FaceDetectionPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.teal.withOpacity(0.8)
+          ..color = AppTheme.accentColor.withOpacity(0.8)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.0;
 
@@ -373,17 +479,17 @@ class FaceDetectionPainter extends CustomPainter {
     // Draw points for facial landmarks
     final pointPaint =
         Paint()
-          ..color = Colors.teal
+          ..color = AppTheme.accentColor
           ..style = PaintingStyle.fill;
 
-    // Eyes
+    // Draw eye markers
     canvas.drawCircle(Offset(centerX - 30, centerY - 30), 3, pointPaint);
     canvas.drawCircle(Offset(centerX + 30, centerY - 30), 3, pointPaint);
 
-    // Nose
+    // Draw nose marker
     canvas.drawCircle(Offset(centerX, centerY + 10), 3, pointPaint);
 
-    // Mouth corners
+    // Draw mouth markers
     canvas.drawCircle(Offset(centerX - 25, centerY + 40), 3, pointPaint);
     canvas.drawCircle(Offset(centerX + 25, centerY + 40), 3, pointPaint);
   }
