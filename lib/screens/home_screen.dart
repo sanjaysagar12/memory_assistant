@@ -347,12 +347,12 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: _showEmergencyDialog,
-          backgroundColor: AppTheme.errorColor,
-          child: const Icon(Icons.call),
-          tooltip: 'Emergency Call',
-        ),
+        // floatingActionButton: FloatingActionButton(
+        //   onPressed: _showEmergencyDialog,
+        //   backgroundColor: AppTheme.errorColor,
+        //   child: const Icon(Icons.call),
+        //   tooltip: 'Emergency Call',
+        // ),
         bottomNavigationBar: BottomNavigationBar(
           items: const [
             BottomNavigationBarItem(

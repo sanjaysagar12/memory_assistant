@@ -225,7 +225,6 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
                         _buildSuggestionChip("Where am I?"),
                         _buildSuggestionChip("What's my routine today?"),
                         _buildSuggestionChip("Who is this person?"),
-                        _buildSuggestionChip("When is my appointment?"),
                       ],
                     ),
                   ],
