@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_theme.dart';
 import 'home_screen.dart';
 import 'caretaker_screen.dart';
@@ -17,6 +20,76 @@ class _LoginScreenState extends State<LoginScreen> {
   String _selectedRole = 'Patient';
   bool _isPasswordVisible = false;
   bool _rememberMe = false;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkToken();
+  }
+
+  Future<void> _checkToken() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('accessToken');
+    
+    if (token != null) {
+      try {
+        final response = await http.get(
+          Uri.parse('https://api.selfmade.plus/auth/profile'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'Content-Type': 'application/json'
+          },
+        );
+
+        if (response.statusCode == 200) {
+          final userData = jsonDecode(response.body);
+          final userRole = userData['role'];
+          final userEmail = userData['email'];
+
+          if (userRole == 'PATIENT') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(
+                  role: 'Patient',
+                  username: userEmail,
+                ),
+              ),
+            );
+          } else if (userRole == 'CARETAKER') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CaretakerScreen(
+                  username: userEmail,
+                ),
+              ),
+            );
+          }
+        } else {
+          // Token invalid, clear preferences
+          prefs.remove('accessToken');
+          prefs.remove('userRole');
+          prefs.remove('userEmail');
+        }
+      } catch (e) {
+        // Error occurred, but we'll just show the login screen
+        print('Error verifying token: $e');
+      }
+    }
+    
+    if (mounted) {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose() {
@@ -25,35 +98,114 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void _login() {
+  Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      // Navigate to appropriate screen based on role
-      if (_selectedRole == 'Patient') {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) => HomeScreen(
-                  role: _selectedRole,
-                  username: _usernameController.text,
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+
+      try {
+        // Send login request to the API
+        final response = await http.post(
+          Uri.parse('https://api.selfmade.plus/login'),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode({
+            'email': _usernameController.text,
+            'password': _passwordController.text,
+          }),
+        );
+
+        if (response.statusCode == 200) {
+          // Successful login
+          final responseData = jsonDecode(response.body);
+          
+          // Extract data from response
+          final accessToken = responseData['accessToken'];
+          final userData = responseData['user'];
+          final userId = userData['id'];
+          final userEmail = userData['email'];
+          final userRole = userData['role'];
+          
+          // Save to SharedPreferences
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('accessToken', accessToken);
+          await prefs.setString('userId', userId);
+          await prefs.setString('userEmail', userEmail);
+          await prefs.setString('userRole', userRole);
+          
+          // Navigate based on role from API response
+          if (userRole == 'PATIENT') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomeScreen(
+                  role: 'Patient',
+                  username: userEmail,
                 ),
-          ),
-        );
-      } else {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder:
-                (context) =>
-                    CaretakerScreen(username: _usernameController.text),
-          ),
-        );
+              ),
+            );
+          } else if (userRole == 'CARETAKER') {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CaretakerScreen(
+                  username: userEmail,
+                ),
+              ),
+            );
+          } else {
+            setState(() {
+              _errorMessage = 'Unknown user role: $userRole';
+            });
+          }
+        } else {
+          // Failed login
+          Map<String, dynamic> responseData = {};
+          try {
+            responseData = jsonDecode(response.body);
+          } catch (e) {
+            // Handle non-JSON responses
+          }
+          
+          setState(() {
+            _errorMessage = responseData['message'] ?? 'Login failed. Please check your credentials.';
+          });
+        }
+      } catch (e) {
+        setState(() {
+          _errorMessage = 'Network error. Please check your connection.';
+        });
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading && _errorMessage == null) {
+      return Scaffold(
+        backgroundColor: AppTheme.backgroundColor,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(color: AppTheme.primaryColor),
+              SizedBox(height: 16),
+              Text("Checking credentials...",
+                style: TextStyle(color: AppTheme.primaryColor),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: AppTheme.backgroundColor,
       body: SafeArea(
@@ -101,13 +253,14 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          // Username Field
+                          // Email Field
                           TextFormField(
                             controller: _usernameController,
+                            keyboardType: TextInputType.emailAddress,
                             decoration: InputDecoration(
-                              labelText: "Username",
+                              labelText: "Email",
                               prefixIcon: Icon(
-                                Icons.person,
+                                Icons.email,
                                 color: AppTheme.primaryColor,
                               ),
                               border: OutlineInputBorder(
@@ -123,7 +276,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return 'Please enter your username';
+                                return 'Please enter your email';
                               }
                               return null;
                             },
@@ -173,7 +326,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                           const SizedBox(height: 20),
 
-                          // Role Selection
+                          // Role Selection (this will be overridden by the API response)
                           DropdownButtonFormField<String>(
                             decoration: InputDecoration(
                               labelText: "Select Role",
@@ -209,6 +362,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                   );
                                 }).toList(),
                           ),
+
+                          // Error message
+                          if (_errorMessage != null)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 12.0),
+                              child: Text(
+                                _errorMessage!,
+                                style: TextStyle(
+                                  color: Colors.red,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ),
 
                           // Remember Me
                           Row(
@@ -250,14 +416,23 @@ class _LoginScreenState extends State<LoginScreen> {
                                 borderRadius: BorderRadius.circular(10),
                               ),
                             ),
-                            onPressed: _login,
-                            child: Text(
-                              'LOGIN',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                            onPressed: _isLoading ? null : _login,
+                            child: _isLoading 
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                    strokeWidth: 2,
+                                  ),
+                                )
+                              : Text(
+                                  'LOGIN',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
                           ),
 
                           const SizedBox(height: 16),
@@ -276,9 +451,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   'Demo Access:',
                                   style: TextStyle(fontWeight: FontWeight.bold),
                                 ),
-                                Text('Username: demo'),
+                                Text('Email: demo@example.com'),
                                 Text('Password: password'),
-                                Text('Select either Patient or Caretaker role'),
                               ],
                             ),
                           ),

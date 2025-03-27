@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/app_theme.dart';
 
 void main() {
@@ -11,9 +11,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Memory Assistant',
-      theme: AppTheme.getTheme(),
+      theme: ThemeData(
+        primaryColor: AppTheme.primaryColor,
+        colorScheme: ColorScheme.fromSeed(seedColor: AppTheme.primaryColor),
+        useMaterial3: true,
+      ),
+      home: SplashScreen(),
       debugShowCheckedModeBanner: false,
-      home: const LoginScreen(),
     );
   }
 }
