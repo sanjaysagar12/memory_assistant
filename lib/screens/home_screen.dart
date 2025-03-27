@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../components/ai_assistant.dart';
 import '../components/map_view.dart';
 import '../components/facial_recognition.dart';
@@ -23,6 +24,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
   late TabController _tabController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   bool _showNotification = false;
+  String userId = '';
   
   @override
   void initState() {
@@ -47,6 +49,16 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
           });
         }
       });
+    });
+    
+    // Load user ID from shared preferences
+    _loadUserData();
+  }
+  
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      userId = prefs.getString('userId') ?? 'Not available';
     });
   }
 
@@ -161,7 +173,11 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     );
   }
 
-  void _showProfileOptions() {
+  void _showProfileOptions() async {
+    // Refresh user ID before showing modal
+    final prefs = await SharedPreferences.getInstance();
+    final currentUserId = prefs.getString('userId') ?? 'Not available';
+    
     showModalBottomSheet(
       context: context,
       shape: RoundedRectangleBorder(
@@ -194,6 +210,10 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
                       "Role: ${widget.role}",
                       style: TextStyle(color: AppTheme.secondaryTextColor),
                     ),
+                    Text(
+                      "User ID: $currentUserId",
+                      style: TextStyle(color: AppTheme.secondaryTextColor, fontSize: 12),
+                    ),
                   ],
                 ),
               ],
@@ -218,7 +238,14 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
             ListTile(
               leading: Icon(Icons.exit_to_app, color: AppTheme.errorColor),
               title: Text("Logout", style: TextStyle(color: AppTheme.errorColor)),
-              onTap: () {
+              onTap: () async {
+                // Remove JWT token and user data from SharedPreferences
+                final prefs = await SharedPreferences.getInstance();
+                await prefs.remove('jwt_token');
+                await prefs.remove('userId');
+                await prefs.remove('username');
+                await prefs.remove('role');
+                
                 Navigator.pop(context); // Close the bottom sheet
                 // Return to login screen
                 Navigator.pushReplacement(
@@ -347,12 +374,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
               ),
           ],
         ),
-        // floatingActionButton: FloatingActionButton(
-        //   onPressed: _showEmergencyDialog,
-        //   backgroundColor: AppTheme.errorColor,
-        //   child: const Icon(Icons.call),
-        //   tooltip: 'Emergency Call',
-        // ),
         bottomNavigationBar: BottomNavigationBar(
           items: const [
             BottomNavigationBarItem(
