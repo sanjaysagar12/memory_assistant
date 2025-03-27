@@ -190,7 +190,7 @@ class _AIAssistantState extends State<AIAssistant> with SingleTickerProviderStat
     try {
       // Send request to API
       final response = await http.post(
-        Uri.parse('https://guideai.selfmade.one/ai/ask/ai/ask'),
+        Uri.parse('https://guideai.selfmade.one/ai/ask'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'user_id': _userId,
