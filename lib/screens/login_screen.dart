@@ -108,7 +108,7 @@ class _LoginScreenState extends State<LoginScreen> {
       try {
         // Send login request to the API
         final response = await http.post(
-          Uri.parse('https://api.selfmade.plus/login'),
+          Uri.parse('https://api.selfmade.plus/auth/login'),
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({
             'email': _usernameController.text,
