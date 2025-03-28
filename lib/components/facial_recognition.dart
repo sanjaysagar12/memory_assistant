@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'dart:io';
 import '../../theme/app_theme.dart';
+import 'package:camera/camera.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
+import 'dart:convert';
 
 class FacialRecognition extends StatefulWidget {
   const FacialRecognition({Key? key}) : super(key: key);
@@ -15,75 +22,153 @@ class _FacialRecognitionState extends State<FacialRecognition> {
   String _imagePath = '';
   String? _identifiedPerson;
   bool _isIdentifying = false;
+  File? _imageFile;
 
   // User current information
   String _currentTime = "2025-03-27 18:54:58";
-  String _username = "sanjaysagar12";
+  String _username = "user";
 
-  // Sample photos and names for demonstration
-  final List<Map<String, dynamic>> _samplePeople = [
-    {
-      'name': 'Sarah Johnson',
-      'relation': 'Your Daughter',
-      'image':
-          'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=250',
-    },
-    {
-      'name': 'Michael Johnson',
-      'relation': 'Your Son',
-      'image':
-          'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=250',
-    },
-    {
-      'name': 'Emma Wilson',
-      'relation': 'Your Granddaughter',
-      'image':
-          'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=250',
-    },
-    {
-      'name': 'Robert Davis',
-      'relation': 'Your Neighbor',
-      'image':
-          'https://images.unsplash.com/photo-1552058544-f2b08422138a?w=250',
-    },
-  ];
+  // Backend API URL
+  final String _backendUrl = 'https://python.selfmade.one/classify';
 
-  // Take a photo - simulated with a timer
-  void _takePhoto() {
+  @override
+  void initState() {
+    super.initState();
+    // Update current time
+    _updateCurrentTime();
+  }
+
+  void _updateCurrentTime() {
+    final now = DateTime.now();
+    setState(() {
+      _currentTime =
+          "${now.toIso8601String().split('T')[0]} ${now.hour.toString().padLeft(2, '0')}:${now.minute.toString().padLeft(2, '0')}:${now.second.toString().padLeft(2, '0')}";
+    });
+  }
+
+  // Take a photo using the camera
+  Future<void> _takePhoto() async {
     setState(() {
       _isCapturing = true;
     });
 
-    // Simulate camera capture delay
-    Timer(Duration(seconds: 2), () {
-      // Randomly select a sample person for demonstration
-      final person =
-          _samplePeople[DateTime.now().second % _samplePeople.length];
+    try {
+      // Use image picker to take a photo
+      final ImagePicker picker = ImagePicker();
+      final XFile? photo = await picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice:
+            CameraDevice.front, // Use front camera for facial recognition
+        imageQuality: 85, // Adjust quality as needed
+      );
+
+      if (photo == null) {
+        // User cancelled
+        setState(() {
+          _isCapturing = false;
+        });
+        return;
+      }
+
+      // Save photo path
+      _imageFile = File(photo.path);
 
       setState(() {
         _isCapturing = false;
         _hasPhoto = true;
-        _imagePath = person['image'];
-
-        // Start identification process
-        _identifyPerson(person);
+        _imagePath = photo.path;
       });
-    });
+
+      // Send the photo to the backend and get identification
+      _sendPhotoToBackend(photo.path);
+    } catch (e) {
+      print("Error taking photo: $e");
+      setState(() {
+        _isCapturing = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to take photo: ${e.toString()}"),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
-  // Identify the person - simulated with a timer
-  void _identifyPerson(Map<String, dynamic> person) {
+  // Send photo to the backend API
+  Future<void> _sendPhotoToBackend(String imagePath) async {
     setState(() {
       _isIdentifying = true;
     });
 
-    // Simulate facial recognition processing
-    Timer(Duration(seconds: 2), () {
+    try {
+      // Create a multipart request
+      var request = http.MultipartRequest('POST', Uri.parse(_backendUrl));
+
+      // Attach the file
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'image', // The field name expected by your backend
+          imagePath,
+          filename: 'facial_recognition.jpg',
+        ),
+      );
+
+      // Send the request
+      var response = await request.send();
+      var responseData = await response.stream.bytesToString();
+      var jsonResponse = json.decode(responseData);
+
+      if (response.statusCode == 200) {
+        // Process successful response
+        setState(() {
+          _isIdentifying = false;
+
+          // Check if the response contains a class field
+          if (jsonResponse.containsKey('class')) {
+            _identifiedPerson = "${jsonResponse['class']}";
+
+            // If you have confidence data
+            if (jsonResponse.containsKey('confidence')) {
+              double confidence = jsonResponse['confidence'] * 100;
+              _identifiedPerson =
+                  "$_identifiedPerson (${confidence.toStringAsFixed(1)}%)";
+            }
+          } else {
+            _identifiedPerson = "Unknown Person";
+          }
+        });
+      } else {
+        // Handle error response
+        setState(() {
+          _isIdentifying = false;
+          _identifiedPerson = "Identification failed";
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              "Failed to identify: ${jsonResponse['error'] ?? 'Unknown error'}",
+            ),
+            backgroundColor: AppTheme.errorColor,
+          ),
+        );
+      }
+    } catch (e) {
+      print("Error sending photo to backend: $e");
       setState(() {
         _isIdentifying = false;
-        _identifiedPerson = '${person['name']} (${person['relation']})';
+        _identifiedPerson = "Connection error";
       });
-    });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Failed to connect to server: ${e.toString()}"),
+          backgroundColor: AppTheme.errorColor,
+        ),
+      );
+    }
   }
 
   // Retry photo capture
@@ -91,6 +176,7 @@ class _FacialRecognitionState extends State<FacialRecognition> {
     setState(() {
       _hasPhoto = false;
       _identifiedPerson = null;
+      _imageFile = null;
     });
   }
 
@@ -271,21 +357,6 @@ class _FacialRecognitionState extends State<FacialRecognition> {
 
                 SizedBox(height: 20),
 
-                // Footer
-                Text(
-                  "Memory Assistant App",
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  "© 2025 ${_username}",
-                  style: TextStyle(
-                    color: AppTheme.secondaryTextColor,
-                    fontSize: 12,
-                  ),
-                ),
               ],
             ),
           ),
@@ -313,20 +384,14 @@ class _FacialRecognitionState extends State<FacialRecognition> {
           ),
         ),
       );
-    } else if (_hasPhoto) {
+    } else if (_hasPhoto && _imageFile != null) {
       // Show captured photo
       return Stack(
         fit: StackFit.expand,
         children: [
-          Image.network(
-            _imagePath,
+          Image.file(
+            _imageFile!,
             fit: BoxFit.cover,
-            loadingBuilder: (context, child, loadingProgress) {
-              if (loadingProgress == null) return child;
-              return Center(
-                child: CircularProgressIndicator(color: AppTheme.primaryColor),
-              );
-            },
             errorBuilder: (context, error, stackTrace) {
               return Center(
                 child: Icon(Icons.broken_image, size: 50, color: Colors.grey),
