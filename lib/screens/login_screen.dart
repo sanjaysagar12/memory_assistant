@@ -115,7 +115,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }),
         );
 
-        if (response.statusCode == 200) {
+        if (response.statusCode == 201) {
           // Successful login
           final responseData = jsonDecode(response.body);
 
